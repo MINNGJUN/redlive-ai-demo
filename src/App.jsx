@@ -7,7 +7,6 @@ import {
   Heart,
   HelpCircle,
   MoreHorizontal,
-  Package,
   Send,
   Share2,
   Sparkles,
@@ -22,6 +21,9 @@ const initialComments = [
   '这个和面霜一起买更划算吗',
   '敏感肌可以每天用吗',
 ]
+
+const defaultLikes = 26800
+const likedLikes = 27800
 
 const aiHighlight = {
   id: 'highlight',
@@ -41,7 +43,7 @@ const aiActions = [
     label: '总结刚刚内容',
     title: '刚刚讲解重点',
     sections: [
-      { label: '商品定位', text: '水光修护精华，主打轻薄保湿和熬夜后肤色稳定。' },
+      { label: '商品定位', text: '水光修护精华，主打轻薄保湿和熬夜后肤感稳定。' },
       { label: '使用场景', text: '通勤、约会、妆前都可以用，主播强调不黏腻。' },
       { label: '主播提示', text: '连续使用 7 天后肤感更稳，建议搭配面霜锁水。' },
     ],
@@ -84,9 +86,13 @@ const aiActions = [
 function App() {
   const [comments, setComments] = useState(initialComments)
   const [commentInput, setCommentInput] = useState('')
-  const [likes, setLikes] = useState(26800)
+  const [likes, setLikes] = useState(defaultLikes)
+  const [isLiked, setIsLiked] = useState(false)
+  const [isCollected, setIsCollected] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
   const [isAiOpen, setIsAiOpen] = useState(false)
   const [activeAction, setActiveAction] = useState(aiHighlight)
+  const [selectedActionId, setSelectedActionId] = useState('summary')
 
   const formattedLikes = useMemo(() => `${(likes / 10000).toFixed(1)}万`, [likes])
 
@@ -103,45 +109,68 @@ function App() {
 
   const openAiSheet = () => {
     setActiveAction(aiHighlight)
+    setSelectedActionId('summary')
     setIsAiOpen(true)
   }
 
   const selectAiAction = (action) => {
     setActiveAction(action)
+    setSelectedActionId(action.id)
     setIsAiOpen(true)
   }
 
-  return (
-    <main className="flex h-screen items-center justify-center overflow-hidden bg-[#ececea] px-4 py-5 text-white">
-      <section className="relative aspect-[390/844] h-[min(844px,calc(100vh-40px))] max-h-[844px] max-w-[390px] overflow-hidden rounded-[44px] bg-[#121012] shadow-[0_24px_70px_rgba(0,0,0,0.28)] ring-8 ring-[#171717]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_13%,rgba(255,223,214,0.96)_0,rgba(245,122,135,0.72)_24%,rgba(132,40,55,0.78)_50%,#09070a_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,244,236,0.32)_0,rgba(255,36,66,0.14)_28%,rgba(0,0,0,0)_54%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.5)_0%,rgba(0,0,0,0.03)_31%,rgba(0,0,0,0.85)_100%)]" />
-        <div className="absolute left-1/2 top-2 h-7 w-28 -translate-x-1/2 rounded-full bg-black/82" />
+  const toggleLike = () => {
+    setIsLiked((current) => {
+      const next = !current
+      setLikes(next ? likedLikes : defaultLikes)
+      return next
+    })
+  }
 
-        <header className="absolute left-0 right-0 top-9 z-20 flex items-center gap-2 px-4">
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-black/24 py-1 pl-1 pr-2 shadow-lg backdrop-blur-xl">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff9aac] to-[#ff2442] text-xs font-bold">
-              红
-            </div>
+  return (
+    <main className="flex h-screen items-center justify-center overflow-hidden bg-[#f5f5f5] px-4 py-5 text-white">
+      <section className="relative aspect-[390/844] h-[min(844px,calc(100vh-40px))] max-h-[844px] max-w-[390px] overflow-hidden rounded-[44px] bg-[#111013] shadow-[0_18px_44px_rgba(0,0,0,0.2)] ring-8 ring-[#171717]">
+        <img
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          src="/images/live-host-bg.jpg"
+          alt="水光修护精华直播讲解画面"
+        />
+        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/50 via-black/18 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/86 via-black/42 to-transparent" />
+        <div className="absolute inset-0 bg-black/[0.03]" />
+        <div className="absolute left-1/2 top-2 h-7 w-28 -translate-x-1/2 rounded-full bg-black/80" />
+
+        <header className="absolute left-0 right-0 top-12 z-20 flex items-center gap-2 px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-white/10 bg-black/22 py-1 pl-1 pr-2 backdrop-blur-md">
+            <img
+              className="h-8 w-8 shrink-0 rounded-full object-cover"
+              src="/images/avatar.png"
+              alt="小红书美妆直播头像"
+            />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] font-semibold">小红书美妆直播</div>
-              <div className="text-[11px] text-white/72">12.8万人观看</div>
+              <div className="truncate text-[13px] font-medium">小红书美妆直播</div>
+              <div className="text-[11px] font-normal text-white/70">12.8万人观看</div>
             </div>
-            <button className="rounded-full bg-[#ff2442] px-3 py-1.5 text-xs font-semibold text-white shadow-md shadow-[#ff2442]/25">
-              关注
+            <button
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                isFollowing ? 'bg-black/30 text-white/82' : 'bg-[#ff2442] text-white'
+              }`}
+              onClick={() => setIsFollowing((current) => !current)}
+              aria-pressed={isFollowing}
+            >
+              {isFollowing ? '已关注' : '关注'}
             </button>
           </div>
 
           <button
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/24 backdrop-blur-xl"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/22 backdrop-blur-md"
             aria-label="更多"
             title="更多"
           >
             <MoreHorizontal size={20} />
           </button>
           <button
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/24 backdrop-blur-xl"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/22 backdrop-blur-md"
             aria-label="关闭"
             title="关闭"
           >
@@ -149,53 +178,56 @@ function App() {
           </button>
         </header>
 
-        <section className="absolute inset-x-5 top-[124px] z-10">
-          <div className="relative mx-auto h-[356px] overflow-hidden rounded-[42px] border border-white/12 bg-white/8 px-6 pb-6 pt-8 text-center shadow-2xl shadow-black/30 backdrop-blur-[2px]">
-            <div className="absolute left-1/2 top-12 h-56 w-56 -translate-x-1/2 rounded-full bg-[#ffe4dc]/20 blur-3xl" />
-            <div className="absolute bottom-16 left-1/2 h-16 w-60 -translate-x-1/2 rounded-[50%] bg-black/28 blur-md" />
-            <div className="relative mx-auto mb-4 h-24 w-24 rounded-full bg-[radial-gradient(circle_at_35%_25%,#fff4ef_0,#ff9caf_38%,#b02a42_100%)] shadow-[0_22px_60px_rgba(255,36,66,0.44)]" />
-            <div className="relative mx-auto mb-4 h-[92px] w-48 rounded-[30px] bg-[linear-gradient(145deg,rgba(255,255,255,0.68),rgba(255,255,255,0.2))] p-2 shadow-[0_20px_48px_rgba(0,0,0,0.24)]">
-              <div className="flex h-full flex-col items-center justify-center rounded-[24px] border border-white/36 bg-[#fff4f6]/90 text-[#ff2442]">
-                <Package size={30} />
-                <span className="mt-1 text-[11px] font-bold">修护精华</span>
-              </div>
-            </div>
-            <div className="relative inline-flex rounded-full bg-black/22 px-3 py-1 text-xs text-white/76 backdrop-blur-md">
-              正在讲解
-            </div>
-            <h1 className="relative mt-2 text-[25px] font-extrabold tracking-normal">
-              「水光修护精华」
-            </h1>
-            <p className="relative mx-auto mt-2 max-w-[260px] text-sm leading-6 text-white/78">
-              清爽保湿、妆前友好，主播正在拆解优惠和敏感肌使用方式。
-            </p>
+        <section className="absolute bottom-[350px] left-4 right-[116px] z-20 text-left">
+          <div className="inline-flex rounded-full bg-black/26 px-3 py-1 text-xs font-normal text-white/84">
+            正在讲解
           </div>
+          <h1 className="mt-2 text-[22px] font-semibold tracking-normal">「水光修护精华」</h1>
+          <p className="mt-2 max-w-[236px] text-[13px] font-normal leading-5 text-white/78">
+            清爽保湿、妆前友好，主播正在拆解优惠和敏感肌使用方式。
+          </p>
         </section>
 
-        <aside className="absolute bottom-[252px] right-4 z-30 flex flex-col items-center gap-2.5">
+        <aside className="absolute bottom-[246px] right-4 z-30 flex flex-col items-center gap-2.5">
           <ActionButton
             label={formattedLikes}
             title="点赞"
-            onClick={() => setLikes((value) => value + 1)}
-            icon={<Heart size={22} fill="currentColor" />}
+            onClick={toggleLike}
+            pressed={isLiked}
+            icon={
+              <Heart
+                size={21}
+                className={isLiked ? 'text-[#ff2442]' : 'text-white'}
+                fill={isLiked ? 'currentColor' : 'none'}
+              />
+            }
           />
-          <ActionButton label="收藏" title="收藏" icon={<Bookmark size={22} />} />
-          <ActionButton label="分享" title="分享" icon={<Share2 size={22} />} />
-          <button
-            className="flex h-[64px] w-[64px] flex-col items-center justify-center rounded-full bg-[#ff2442] text-[11px] font-bold leading-tight text-white shadow-[0_10px_30px_rgba(255,36,66,0.54)] transition active:scale-95"
-            onClick={openAiSheet}
-            aria-label="AI 助手"
+          <ActionButton
+            label={isCollected ? '已收藏' : '收藏'}
+            title="收藏"
+            onClick={() => setIsCollected((current) => !current)}
+            pressed={isCollected}
+            icon={
+              <Bookmark
+                size={21}
+                className={isCollected ? 'text-[#fdbc5f]' : 'text-white'}
+                fill={isCollected ? 'currentColor' : 'none'}
+              />
+            }
+          />
+          <ActionButton label="分享" title="分享" icon={<Share2 size={21} />} />
+          <ActionButton
+            label="AI"
             title="AI 助手"
-          >
-            <Bot size={20} />
-            <span className="mt-0.5">AI 助手</span>
-          </button>
+            onClick={openAiSheet}
+            icon={<Bot size={21} className="text-white" />}
+          />
         </aside>
 
-        <section className="absolute bottom-[214px] left-4 right-[112px] z-20 space-y-2">
+        <section className="absolute bottom-[190px] left-4 right-[132px] z-20 space-y-1">
           {comments.slice(-4).map((comment, index) => (
             <div
-              className="w-fit max-w-full rounded-full bg-black/44 px-3 py-2 text-[12px] leading-5 text-white shadow-lg backdrop-blur-md"
+              className="w-fit max-w-full rounded-full bg-black/34 px-3 py-1.5 text-[12px] font-normal leading-5 text-white/92 backdrop-blur-sm"
               key={`${comment}-${index}`}
             >
               {comment}
@@ -203,32 +235,38 @@ function App() {
           ))}
         </section>
 
-        <section className="absolute bottom-[82px] left-4 right-4 z-20 rounded-[24px] border border-white/24 bg-white/82 p-3 text-[#191919] shadow-[0_14px_38px_rgba(0,0,0,0.24)] backdrop-blur-2xl">
-          <div className="flex gap-3">
-            <div className="flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-[20px] bg-gradient-to-br from-[#ffe2e8] to-[#ff6f84] text-white shadow-inner">
-              <Package size={30} />
+        <section className="absolute bottom-[82px] left-4 right-4 z-20 rounded-[20px] border border-white/36 bg-white/[0.92] p-2.5 text-[rgba(0,0,0,0.8)]">
+          <div className="flex gap-2.5">
+            <div className="flex h-[64px] w-[60px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/60 p-1">
+              <img
+                className="h-[76px] w-[66px] object-contain mix-blend-multiply"
+                src="/images/product-serum.png"
+                alt="水光修护精华商品图"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h2 className="truncate text-[15px] font-bold">水光修护精华</h2>
+                  <h2 className="truncate text-[15px] font-semibold">水光修护精华</h2>
                   <div className="mt-1 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-[#fff1f3] px-2 py-1 text-[10px] font-semibold text-[#ff2442]">
-                      直播间价 ¥129
-                    </span>
-                    <span className="rounded-full bg-[#f2f2ee] px-2 py-1 text-[10px] font-semibold text-[#5d5d58]">
+                    <span className="rounded-full bg-[rgba(48,48,52,0.08)] px-2 py-1 text-[10px] font-medium text-[rgba(0,0,0,0.62)]">
                       敏感肌可用
+                    </span>
+                    <span className="rounded-full bg-[rgba(48,48,52,0.06)] px-2 py-1 text-[10px] font-medium text-[rgba(0,0,0,0.62)]">
+                      前 300 单赠旅行装
                     </span>
                   </div>
                 </div>
-                <div className="text-right text-lg font-extrabold text-[#ff2442]">
+                <div className="text-right text-base font-semibold text-[rgba(0,0,0,0.8)]">
                   ¥129
-                  <div className="text-[10px] font-semibold text-[#8a8a82] line-through">¥189</div>
+                  <div className="text-[10px] font-normal text-[rgba(0,0,0,0.45)]">直播间价</div>
                 </div>
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <div className="text-xs font-medium text-[#777]">前 300 单赠旅行装</div>
-                <button className="rounded-full bg-[#ff2442] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[#ff2442]/25">
+              <div className="mt-1.5 flex items-center justify-between">
+                <div className="text-xs font-normal text-[rgba(0,0,0,0.45)]">
+                  清爽保湿 / 妆前友好
+                </div>
+                <button className="rounded-full bg-[#ff2442] px-4 py-2 text-xs font-medium text-white">
                   去看看
                 </button>
               </div>
@@ -236,10 +274,10 @@ function App() {
           </div>
         </section>
 
-        <footer className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black via-black/74 to-transparent px-4 pb-5 pt-8">
+        <footer className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black via-black/70 to-transparent px-4 pb-5 pt-8">
           <div className="flex items-center gap-2">
             <input
-              className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/14 px-4 py-3 text-sm text-white outline-none shadow-inner backdrop-blur-md placeholder:text-white/58 focus:border-white/35"
+              className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/14 px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-white/56 focus:border-white/35"
               value={commentInput}
               onChange={(event) => setCommentInput(event.target.value)}
               onKeyDown={(event) => {
@@ -250,7 +288,7 @@ function App() {
               placeholder="说点什么…"
             />
             <button
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ff2442] text-white shadow-lg shadow-[#ff2442]/32 transition active:scale-95"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/16 text-white transition active:scale-95"
               onClick={sendComment}
               aria-label="发送评论"
               title="发送评论"
@@ -261,28 +299,30 @@ function App() {
         </footer>
 
         {isAiOpen && (
-          <div className="absolute inset-0 z-40 bg-black/28" onClick={() => setIsAiOpen(false)} />
+          <div className="absolute inset-0 z-40 bg-black/36" onClick={() => setIsAiOpen(false)} />
         )}
 
         <section
-          className={`absolute inset-x-0 bottom-0 z-50 h-[57%] overflow-y-auto rounded-t-[30px] border border-white/16 bg-[#fbfbf8]/96 px-4 pb-4 pt-3 text-[#191919] shadow-[0_-24px_54px_rgba(0,0,0,0.32)] backdrop-blur-2xl transition-transform duration-300 ${
+          className={`absolute inset-x-0 bottom-0 z-50 max-h-[54%] overflow-y-auto rounded-t-[20px] bg-[#fbfbf8] px-4 pb-4 pt-2 text-[rgba(0,0,0,0.8)] transition-transform duration-300 ${
             isAiOpen ? 'translate-y-0' : 'translate-y-full'
           }`}
           aria-hidden={!isAiOpen}
         >
-          <div className="mx-auto mb-2.5 h-1.5 w-11 rounded-full bg-black/14" />
-          <div className="mb-2.5 flex items-center justify-between">
+          <div className="mx-auto mb-2 h-1 w-9 rounded-full bg-[rgba(0,0,0,0.12)]" />
+          <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff2442] text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(255,36,66,0.08)] text-[#ff2442]">
                 <Bot size={19} />
               </div>
               <div>
-                <h2 className="text-lg font-bold">AI 直播助手</h2>
-                <p className="text-xs text-[#777]">帮你快速理解直播内容与优惠信息</p>
+                <h2 className="text-[17px] font-semibold">AI 直播助手</h2>
+                <p className="text-xs font-normal text-[rgba(0,0,0,0.45)]">
+                  帮你快速理解直播内容与优惠信息
+                </p>
               </div>
             </div>
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f0f0ec] text-[#555]"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(48,48,52,0.08)] text-[rgba(0,0,0,0.62)]"
               onClick={() => setIsAiOpen(false)}
               aria-label="关闭 AI 助手"
               title="关闭"
@@ -291,46 +331,49 @@ function App() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {aiActions.map((action) => {
               const Icon = action.icon
-              const isActive = activeAction.id === action.id
+              const isActive = selectedActionId === action.id
 
               return (
                 <button
-                  className={`flex min-h-[48px] items-center gap-2 rounded-[17px] border px-3 text-left text-[13px] font-semibold transition ${
+                  className={`flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-left text-[12px] font-medium transition ${
                     isActive
-                      ? 'border-[#ff2442] bg-[#fff1f3] text-[#ff2442]'
-                      : 'border-[#e8e8e2] bg-white text-[#30302d]'
+                      ? 'border-[rgba(255,36,66,0.28)] bg-[rgba(255,36,66,0.08)] text-[rgba(0,0,0,0.8)]'
+                      : 'border-transparent bg-[rgba(48,48,52,0.08)] text-[rgba(0,0,0,0.8)]'
                   }`}
                   key={action.id}
                   onClick={() => selectAiAction(action)}
+                  aria-pressed={isActive}
                 >
-                  <Icon size={17} />
+                  <Icon size={15} />
                   {action.label}
                 </button>
               )
             })}
           </div>
 
-          <div className="mt-2.5 rounded-[22px] border border-[#e8e8e2] bg-white p-3 shadow-sm">
-            <div className="mb-2 flex items-center gap-2 text-sm font-bold">
-              <CheckCircle2 size={18} className="text-[#ff2442]" />
+          <div className="mt-3 rounded-2xl border border-[rgba(0,0,0,0.08)] bg-white p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+              <CheckCircle2 size={17} className="text-[rgba(0,0,0,0.62)]" />
               {activeAction.title}
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <ul className="space-y-2">
               {activeAction.sections.map((section) => (
-                <article
-                  className="min-h-[66px] rounded-2xl bg-[linear-gradient(135deg,#fff7f8,#f7f7f3)] px-2.5 py-2"
-                  key={section.label}
-                >
-                  <div className="mb-0.5 text-[11px] font-bold text-[#ff2442]">
-                    {section.label}
+                <li className="flex gap-2" key={section.label}>
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[rgba(48,48,52,0.35)]" />
+                  <div>
+                    <div className="text-[12px] font-medium text-[rgba(0,0,0,0.8)]">
+                      {section.label}
+                    </div>
+                    <p className="text-[12px] font-normal leading-[18px] text-[rgba(0,0,0,0.62)]">
+                      {section.text}
+                    </p>
                   </div>
-                  <p className="text-[11px] leading-[16px] text-[#474742]">{section.text}</p>
-                </article>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
       </section>
@@ -338,15 +381,16 @@ function App() {
   )
 }
 
-function ActionButton({ icon, label, title, onClick }) {
+function ActionButton({ icon, label, title, onClick, pressed = false }) {
   return (
     <button
-      className="flex w-14 flex-col items-center gap-1 text-xs font-semibold text-white drop-shadow-lg transition active:scale-95"
+      className="flex w-14 flex-col items-center gap-1 text-[11px] font-medium text-white/94 transition active:scale-95"
       onClick={onClick}
       aria-label={title}
+      aria-pressed={pressed}
       title={title}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/36 backdrop-blur-md">
+      <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-black/28">
         {icon}
       </span>
       <span>{label}</span>
